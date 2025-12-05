@@ -1,0 +1,115 @@
+# 📤 INSTRUCCIONES: Subir a GitHub
+
+## ✅ Esta carpeta contiene TODO lo necesario
+
+7 archivos en total:
+- dashboard_web.py
+- DASHBOARD_II_BIMESTRE.xlsx
+- requirements.txt
+- Procfile
+- runtime.txt
+- .gitignore
+- assets/logo.png
+
+---
+
+## 🚀 PASO 1: Crear repositorio en GitHub
+
+1. Ir a: https://github.com/new
+2. Repository name: `dashboard-amalia`
+3. Description: `Dashboard Académico I.E. Amalia`
+4. Marcar: ✅ **Public**
+5. NO marcar "Add README" ni "Add .gitignore"
+6. Click: **Create repository**
+
+---
+
+## 📁 PASO 2: Subir archivos
+
+En la página del nuevo repositorio:
+
+1. Click en: **uploading an existing file**
+
+2. **ARRASTRAR TODOS LOS ARCHIVOS** de esta carpeta:
+   - Seleccionar los 6 archivos (sin la carpeta assets)
+   - Arrastrar al navegador
+
+3. **Subir carpeta assets por separado:**
+   - Click: **Add file** → **Create new file**
+   - Nombre: `assets/logo.png`
+   - Click: **Choose your files**
+   - Seleccionar: `logo.png` de la carpeta assets
+   - Scroll abajo
+   - Commit message: `Agregar logo`
+   - Click: **Commit changes**
+
+---
+
+## 🌐 PASO 3: Conectar con Render
+
+1. Ir a: https://dashboard.render.com
+
+2. Click: **New +** → **Web Service**
+
+3. Click: **Connect a repository**
+
+4. Buscar: `dashboard-amalia`
+
+5. Click: **Connect**
+
+6. Configurar:
+   ```
+   Name: dashboard-amalia
+   Region: Oregon (US West)
+   Branch: main
+   Runtime: Python 3
+   Build Command: pip install -r requirements.txt
+   Start Command: gunicorn dashboard_web:server
+   Instance Type: Free
+   ```
+
+7. Click: **Create Web Service**
+
+---
+
+## ⏱️ PASO 4: Esperar
+
+Render mostrará logs en tiempo real:
+```
+Building...
+Installing dependencies...
+Starting server...
+Live at: https://dashboard-amalia.onrender.com
+```
+
+Primera vez: 3-5 minutos
+
+---
+
+## 🎉 RESULTADO
+
+Tu dashboard estará en:
+**https://dashboard-amalia.onrender.com**
+
+(El link exacto lo ves en Render)
+
+---
+
+## 📱 Compartir
+
+Solo enviar el link a cualquier persona:
+- Funciona en PC, tablets, celulares
+- No necesitan instalar nada
+- Acceso desde cualquier lugar
+
+---
+
+## ⚠️ IMPORTANTE
+
+El plan FREE de Render:
+- Se suspende después de 15 min sin uso
+- Al volver a abrir tarda ~30 seg en "despertar"
+- 750 horas/mes gratis (suficiente)
+
+Para mantenerlo activo 24/7:
+https://uptimerobot.com (gratis, hace ping cada 5 min)
