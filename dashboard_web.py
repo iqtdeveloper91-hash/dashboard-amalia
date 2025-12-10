@@ -9,7 +9,7 @@ import warnings
 import os
 warnings.filterwarnings('ignore')
 
-print("📂 Cargando datos...")
+print("[*] Cargando datos...")
 
 # Detectar ruta del archivo Excel (funciona en local y en servidor)
 if os.path.exists('DASHBOARD_II_BIMESTRE.xlsx'):
@@ -32,8 +32,8 @@ if len(df_data) > 0:
     df_data['seccion'] = df_data.iloc[:, 3].astype(str)
     df_data = df_data[df_data['alumno_id'] > 0]
 
-print(f"✅ Datos cargados: {len(df_estadisticas)} registros de estadísticas")
-print(f"✅ Alumnos encontrados: {len(df_data)}")
+print(f"[OK] Datos cargados: {len(df_estadisticas)} registros de estadisticas")
+print(f"[OK] Alumnos encontrados: {len(df_data)}")
 
 cursos_row = df_data_raw.iloc[1, :].tolist()
 competencias_row = df_data_raw.iloc[3, :].tolist()
@@ -88,6 +88,10 @@ df_seccion_comp['Porcentaje'] = (df_seccion_comp['Cantidad'] / df_seccion_comp['
 # Métricas generales
 total_evaluaciones = len(df_estadisticas)
 nivel_counts = df_estadisticas['Nivel'].value_counts()
+total_cursos = df_estadisticas['Curso'].nunique()
+total_competencias = df_estadisticas['Competencia'].nunique()
+total_grados = df_estadisticas['Grado'].nunique()
+total_secciones = df_estadisticas['Seccion'].nunique()
 
 # Crear aplicación Dash
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
@@ -107,42 +111,13 @@ app.layout = html.Div([
         ], style={'display': 'inline-block', 'verticalAlign': 'middle'}),
     ], style={'textAlign': 'center', 'marginBottom': 30, 'padding': '20px', 'backgroundColor': 'white', 'borderRadius': '10px', 'boxShadow': '0 4px 6px rgba(0,0,0,0.1)'}),
     
-    # Tarjetas de métricas generales
-    html.Div([
-        html.Div([
-            html.H3('📝 Total Evaluaciones', style={'fontSize': '18px', 'margin': 0}),
-            html.H2(f'{total_evaluaciones:,}', style={'color': '#3498db', 'margin': '10px 0'})
-        ], className='metric-card'),
-        
-        html.Div([
-            html.H3('🎯 Nivel AD', style={'fontSize': '18px', 'margin': 0}),
-            html.H2(f'{nivel_counts.get("AD", 0):,}', style={'color': '#27ae60', 'margin': '10px 0'}),
-            html.P(f'{(nivel_counts.get("AD", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
-        ], className='metric-card'),
-        
-        html.Div([
-            html.H3('⭐ Nivel A', style={'fontSize': '18px', 'margin': 0}),
-            html.H2(f'{nivel_counts.get("A", 0):,}', style={'color': '#2ecc71', 'margin': '10px 0'}),
-            html.P(f'{(nivel_counts.get("A", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
-        ], className='metric-card'),
-        
-        html.Div([
-            html.H3('📊 Nivel B', style={'fontSize': '18px', 'margin': 0}),
-            html.H2(f'{nivel_counts.get("B", 0):,}', style={'color': '#f39c12', 'margin': '10px 0'}),
-            html.P(f'{(nivel_counts.get("B", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
-        ], className='metric-card'),
-        
-        html.Div([
-            html.H3('⚠️ Nivel C', style={'fontSize': '18px', 'margin': 0}),
-            html.H2(f'{nivel_counts.get("C", 0):,}', style={'color': '#e74c3c', 'margin': '10px 0'}),
-            html.P(f'{(nivel_counts.get("C", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
-        ], className='metric-card'),
-    ], style={'display': 'flex', 'flexWrap': 'wrap', 'marginBottom': 30, 'gap': '10px'}),
+    # Tarjetas de métricas generales (dinámicas)
+    html.Div(id='metricas-dinamicas', style={'display': 'flex', 'flexWrap': 'wrap', 'marginBottom': 30, 'gap': '10px'}),
     
     # Tabs
-    dcc.Tabs([
+    dcc.Tabs(id='tabs-principal', value='tab-secundaria', children=[
         # TAB 1: NIVEL SECUNDARIA (solo segundo cuadro)
-        dcc.Tab(label='📚 1. Nivel Secundaria', children=[
+        dcc.Tab(label='📚 1. Nivel Secundaria', value='tab-secundaria', children=[
             html.Div([
                 html.H2('Porcentaje por Curso y Competencia', style={'color': '#2c3e50', 'marginTop': 20}),
                 html.Div([
@@ -160,7 +135,7 @@ app.layout = html.Div([
         ]),
         
         # TAB 2: POR CURSO (grado-curso-competencia)
-        dcc.Tab(label='🎓 2. Por Curso', children=[
+        dcc.Tab(label='🎓 2. Por Curso', value='tab-curso', children=[
             html.Div([
                 html.H2('Porcentaje por Grado, Curso y Competencia', style={'color': '#2c3e50', 'marginTop': 20}),
                 html.Div([
@@ -194,7 +169,7 @@ app.layout = html.Div([
         ]),
         
         # TAB 3: POR SECCIÓN (seccion-curso-competencia)
-        dcc.Tab(label='👥 3. Por Sección', children=[
+        dcc.Tab(label='👥 3. Por Sección', value='tab-seccion', children=[
             html.Div([
                 html.H2('Porcentaje por Sección, Curso y Competencia', style={'color': '#2c3e50', 'marginTop': 20}),
                 html.Div([
@@ -228,7 +203,7 @@ app.layout = html.Div([
         ]),
         
         # TAB 4: POR ALUMNO
-        dcc.Tab(label='👤 4. Por Alumno', children=[
+        dcc.Tab(label='👤 4. Por Alumno', value='tab-alumno', children=[
             html.Div([
                 html.H2('Listado de Alumnos', 
                        style={'color': '#2c3e50', 'marginTop': 20}),
@@ -261,24 +236,302 @@ app.layout = html.Div([
     
 ], style={'padding': 30, 'fontFamily': 'Arial, sans-serif', 'backgroundColor': '#f5f6fa'})
 
-# Estilos CSS adicionales
+# Estilos CSS adicionales - Estilo Power BI
 app.index_string = '''
 <!DOCTYPE html>
 <html>
     <head>
         {%metas%}
-        <title>{%title%}</title>
+        <title>Dashboard Académico - I.E. Amalia del Águila Velásquez</title>
         {%favicon%}
         {%css%}
+        <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
         <style>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: #f3f2f1;
+                min-height: 100vh;
+            }
+            
+            /* Contenedor principal estilo Power BI */
+            #react-entry-point > div {
+                background: #ffffff;
+                margin: 0;
+                padding: 0;
+                min-height: 100vh;
+            }
+            
+            /* Header superior oscuro estilo Power BI */
+            #react-entry-point > div > div:first-child {
+                background: linear-gradient(90deg, #1f1f1f 0%, #2d2d2d 100%);
+                padding: 15px 30px !important;
+                margin: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                display: flex;
+                align-items: center;
+            }
+            
+            #react-entry-point > div > div:first-child h1,
+            #react-entry-point > div > div:first-child h2 {
+                color: #ffffff !important;
+                background: none !important;
+                -webkit-text-fill-color: #ffffff !important;
+                margin: 0 !important;
+                text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            }
+            
+            #react-entry-point > div > div:first-child img {
+                margin-right: 15px !important;
+            }
+            
+            /* Tarjetas métricas estilo Power BI */
             .metric-card {
                 text-align: center;
                 padding: 20px;
-                background-color: #ecf0f1;
-                border-radius: 10px;
+                background: #ffffff;
+                border: 1px solid #e1dfdd;
+                border-radius: 2px;
                 flex: 1;
                 min-width: 150px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                box-shadow: 0 1.6px 3.6px rgba(0,0,0,0.13), 0 0.3px 0.9px rgba(0,0,0,0.11);
+                transition: all 0.2s ease;
+                position: relative;
+            }
+            
+            .metric-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, #00bcf2 0%, #0078d4 100%);
+            }
+            
+            .metric-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 3.2px 7.2px rgba(0,0,0,0.13), 0 0.6px 1.8px rgba(0,0,0,0.11);
+            }
+            
+            .metric-card h3 {
+                color: #605e5c;
+                font-size: 14px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 8px;
+            }
+            
+            .metric-card h2 {
+                color: #323130;
+                font-size: 32px;
+                font-weight: 600;
+                margin: 5px 0;
+            }
+            
+            .metric-card p {
+                color: #797775;
+                font-size: 13px;
+            }
+            
+            /* Tabs estilo Power BI */
+            ._dash-undo-redo {
+                display: none;
+            }
+            
+            .tab {
+                background: transparent !important;
+                border: none !important;
+                border-bottom: 3px solid transparent !important;
+                color: #605e5c !important;
+                padding: 12px 20px !important;
+                margin: 0 !important;
+                transition: all 0.2s ease !important;
+                font-weight: 600 !important;
+                font-size: 14px !important;
+                letter-spacing: 0.3px !important;
+            }
+            
+            .tab:hover {
+                background: rgba(0,120,212,0.05) !important;
+                border-bottom: 3px solid #c7e0f4 !important;
+            }
+            
+            .tab--selected {
+                background: transparent !important;
+                color: #0078d4 !important;
+                border-bottom: 3px solid #0078d4 !important;
+            }
+            
+            /* Contenedor de tabs */
+            div[role="tablist"] {
+                background: #faf9f8;
+                border-bottom: 1px solid #edebe9;
+                padding: 0 20px;
+            }
+            
+            /* Dropdowns estilo Power BI */
+            .Select-control {
+                border: 1px solid #8a8886 !important;
+                border-radius: 2px !important;
+                background: #ffffff !important;
+                transition: all 0.1s ease !important;
+                font-size: 14px !important;
+            }
+            
+            .Select-control:hover {
+                border-color: #323130 !important;
+            }
+            
+            .is-focused .Select-control {
+                border-color: #0078d4 !important;
+                box-shadow: 0 0 0 1px #0078d4 !important;
+            }
+            
+            .Select-menu-outer {
+                border: 1px solid #0078d4 !important;
+                border-radius: 2px !important;
+                box-shadow: 0 3.2px 7.2px rgba(0,0,0,0.13), 0 0.6px 1.8px rgba(0,0,0,0.11) !important;
+            }
+            
+            .Select-option:hover {
+                background-color: #f3f2f1 !important;
+            }
+            
+            .Select-option.is-selected {
+                background-color: #0078d4 !important;
+                color: white !important;
+            }
+            
+            /* Labels */
+            label {
+                color: #323130;
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 5px;
+                display: block;
+            }
+            
+            /* Títulos estilo Power BI */
+            h2, h3 {
+                color: #323130 !important;
+                font-weight: 600 !important;
+                background: none !important;
+                -webkit-text-fill-color: #323130 !important;
+                letter-spacing: 0.3px;
+            }
+            
+            /* Gráficos con estilo Power BI */
+            .js-plotly-plot {
+                border: 1px solid #e1dfdd;
+                border-radius: 2px;
+                background: #ffffff;
+                box-shadow: 0 1.6px 3.6px rgba(0,0,0,0.13), 0 0.3px 0.9px rgba(0,0,0,0.11);
+                margin-bottom: 20px;
+            }
+            
+            /* Contenedor de contenido con padding */
+            div[role="tabpanel"] > div {
+                padding: 20px 30px;
+                background: #f3f2f1;
+            }
+            
+            /* Tabla estilo Power BI */
+            table {
+                background: white;
+                border: 1px solid #e1dfdd;
+                border-radius: 2px;
+                font-size: 14px;
+            }
+            
+            thead th {
+                background: #faf9f8 !important;
+                color: #323130 !important;
+                font-weight: 600 !important;
+                border-bottom: 2px solid #e1dfdd !important;
+                padding: 12px 10px !important;
+                text-align: center !important;
+            }
+            
+            tbody td {
+                border-bottom: 1px solid #edebe9;
+                padding: 10px;
+                color: #323130;
+            }
+            
+            tbody tr:hover {
+                background: #f3f2f1;
+            }
+            
+            /* Niveles coloreados */
+            tbody td[style*="background-color: rgb(213, 244, 230)"] {
+                background-color: #dff6dd !important;
+                font-weight: 600;
+            }
+            
+            tbody td[style*="background-color: rgb(169, 223, 191)"] {
+                background-color: #bce8c4 !important;
+                font-weight: 600;
+            }
+            
+            tbody td[style*="background-color: rgb(253, 234, 161)"] {
+                background-color: #fff4ce !important;
+                font-weight: 600;
+            }
+            
+            tbody td[style*="background-color: rgb(245, 183, 177)"] {
+                background-color: #fde7e9 !important;
+                font-weight: 600;
+            }
+            
+            /* Scrollbar estilo Power BI */
+            ::-webkit-scrollbar {
+                width: 10px;
+                height: 10px;
+            }
+            
+            ::-webkit-scrollbar-track {
+                background: #f3f2f1;
+            }
+            
+            ::-webkit-scrollbar-thumb {
+                background: #c8c6c4;
+                border-radius: 2px;
+            }
+            
+            ::-webkit-scrollbar-thumb:hover {
+                background: #a19f9d;
+            }
+            
+            /* Separador horizontal */
+            hr {
+                border: none;
+                border-top: 1px solid #edebe9;
+                margin: 30px 0;
+            }
+            
+            /* Grid de filtros */
+            div[style*="display: inline-block"] {
+                vertical-align: top;
+            }
+            
+            /* Leyenda de niveles */
+            div[style*="textAlign: center"] > div[style*="display: inline-block"] {
+                padding: 8px 16px;
+                margin: 5px;
+                border-radius: 2px;
+                font-size: 13px;
+                font-weight: 600;
+                letter-spacing: 0.5px;
             }
         </style>
     </head>
@@ -294,6 +547,185 @@ app.index_string = '''
 '''
 
 # CALLBACKS
+
+# CALLBACK PARA MÉTRICAS DINÁMICAS
+@app.callback(
+    Output('metricas-dinamicas', 'children'),
+    Input('tabs-principal', 'value')
+)
+def actualizar_metricas(tab_activa):
+    metricas = []
+    
+    if tab_activa == 'tab-secundaria':
+        # Métricas generales de secundaria
+        metricas = [
+            html.Div([
+                html.H3('👥 Total de Estudiantes', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{len(df_data):,}', style={'color': '#3498db', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('📝 Total de Evaluaciones', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_evaluaciones:,}', style={'color': '#9b59b6', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('📚 Total de Cursos', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_cursos}', style={'color': '#3498db', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('🎯 Total de Competencias', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_competencias}', style={'color': '#16a085', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('🎯 Nivel AD', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("AD", 0):,}', style={'color': '#27ae60', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("AD", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('⭐ Nivel A', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("A", 0):,}', style={'color': '#2ecc71', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("A", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('📊 Nivel B', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("B", 0):,}', style={'color': '#f39c12', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("B", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('⚠️ Nivel C', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("C", 0):,}', style={'color': '#e74c3c', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("C", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+        ]
+    
+    elif tab_activa == 'tab-curso':
+        # Métricas por curso (agrupado por grado)
+        cursos_por_grado = df_curso_comp_grado.groupby('Grado')['Curso'].nunique()
+        total_grados_curso = len(cursos_por_grado)
+        
+        metricas = [
+            html.Div([
+                html.H3('🎓 Total de Grados', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_grados_curso}', style={'color': '#3498db', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('📚 Total de Cursos', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_cursos}', style={'color': '#9b59b6', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('🎯 Total de Competencias', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_competencias}', style={'color': '#16a085', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('📝 Total de Evaluaciones', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_evaluaciones:,}', style={'color': '#34495e', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('🎯 Nivel AD', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("AD", 0):,}', style={'color': '#27ae60', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("AD", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('⭐ Nivel A', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("A", 0):,}', style={'color': '#2ecc71', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("A", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('📊 Nivel B', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("B", 0):,}', style={'color': '#f39c12', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("B", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('⚠️ Nivel C', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("C", 0):,}', style={'color': '#e74c3c', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("C", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+        ]
+    
+    elif tab_activa == 'tab-seccion':
+        # Métricas por sección
+        total_secciones_count = df_seccion_comp['Seccion'].nunique()
+        
+        metricas = [
+            html.Div([
+                html.H3('👥 Total de Secciones', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_secciones_count}', style={'color': '#3498db', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('📚 Total de Cursos', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_cursos}', style={'color': '#9b59b6', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('🎯 Total de Competencias', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_competencias}', style={'color': '#16a085', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('📝 Total de Evaluaciones', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_evaluaciones:,}', style={'color': '#34495e', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('🎯 Nivel AD', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("AD", 0):,}', style={'color': '#27ae60', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("AD", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('⭐ Nivel A', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("A", 0):,}', style={'color': '#2ecc71', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("A", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('📊 Nivel B', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("B", 0):,}', style={'color': '#f39c12', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("B", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('⚠️ Nivel C', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("C", 0):,}', style={'color': '#e74c3c', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("C", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+        ]
+    
+    elif tab_activa == 'tab-alumno':
+        # Métricas por alumno
+        metricas = [
+            html.Div([
+                html.H3('👥 Total de Estudiantes', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{len(df_data):,}', style={'color': '#3498db', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('🎓 Total de Grados', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_grados}', style={'color': '#9b59b6', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('👥 Total de Secciones', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_secciones}', style={'color': '#16a085', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('📚 Total de Cursos', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{total_cursos}', style={'color': '#34495e', 'margin': '10px 0'})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('🎯 Nivel AD', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("AD", 0):,}', style={'color': '#27ae60', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("AD", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('⭐ Nivel A', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("A", 0):,}', style={'color': '#2ecc71', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("A", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('📊 Nivel B', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("B", 0):,}', style={'color': '#f39c12', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("B", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+            html.Div([
+                html.H3('⚠️ Nivel C', style={'fontSize': '18px', 'margin': 0}),
+                html.H2(f'{nivel_counts.get("C", 0):,}', style={'color': '#e74c3c', 'margin': '10px 0'}),
+                html.P(f'{(nivel_counts.get("C", 0)/total_evaluaciones*100):.1f}%', style={'color': '#7f8c8d', 'margin': 0})
+            ], className='metric-card'),
+        ]
+    
+    return metricas
 
 # 1. Nivel Secundaria - Competencia
 @app.callback(
@@ -390,6 +822,8 @@ def update_curso_options_seccion(seccion):
     [Input('filtro-seccion-seccion', 'value'), Input('filtro-seccion-curso', 'value')]
 )
 def update_competencia_options_seccion(seccion, curso):
+    if not curso:
+        return [], None
     comps = sorted(df_seccion_comp[(df_seccion_comp['Seccion'] == seccion) & (df_seccion_comp['Curso'] == curso)]['Competencia'].unique())
     return [{'label': c, 'value': c} for c in comps], comps[0] if comps else None
 
@@ -398,7 +832,7 @@ def update_competencia_options_seccion(seccion, curso):
     [Input('filtro-seccion-seccion', 'value'), Input('filtro-seccion-curso', 'value'), Input('filtro-seccion-competencia', 'value')]
 )
 def update_grafico_seccion_filtros(seccion, curso, competencia):
-    if not competencia:
+    if not curso or not competencia:
         return html.Div()
     df_filt = df_seccion_comp[(df_seccion_comp['Seccion'] == seccion) & (df_seccion_comp['Curso'] == curso) & (df_seccion_comp['Competencia'] == competencia)]
     fig = go.Figure(data=[
@@ -666,6 +1100,6 @@ def mostrar_tabla_alumnos(grado, seccion, curso):
     return tabla_html
 
 if __name__ == '__main__':
-    print("\n🚀 Iniciando Dashboard...")
-    print("📍 Servidor web activo")
+    print("\n[*] Iniciando Dashboard...")
+    print("[*] Servidor web activo")
     app.run(debug=False, host='0.0.0.0', port=8050)
