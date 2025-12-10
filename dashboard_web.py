@@ -55,22 +55,34 @@ total_por_comp = df_estadisticas.groupby('Competencia').size().reset_index(name=
 df_secundaria_comp = df_secundaria_comp.merge(total_por_comp, on='Competencia')
 df_secundaria_comp['Porcentaje'] = (df_secundaria_comp['Cantidad'] / df_secundaria_comp['Total']) * 100
 
-# 2. Agrupar por Curso - Competencia
+# 2. Agrupar por Curso - Competencia (para nivel secundaria)
 df_curso_comp = df_estadisticas.groupby(['Curso', 'Competencia', 'Nivel']).size().reset_index(name='Cantidad')
 total_curso_comp = df_estadisticas.groupby(['Curso', 'Competencia']).size().reset_index(name='Total')
 df_curso_comp = df_curso_comp.merge(total_curso_comp, on=['Curso', 'Competencia'])
 df_curso_comp['Porcentaje'] = (df_curso_comp['Cantidad'] / df_curso_comp['Total']) * 100
 
-# 3. Agrupar por Grado - Competencia
+# 2b. Agrupar por Grado - Curso - Competencia (para pestaña Por Curso)
+df_curso_comp_grado = df_estadisticas.groupby(['Grado', 'Curso', 'Competencia', 'Nivel']).size().reset_index(name='Cantidad')
+total_curso_comp_grado = df_estadisticas.groupby(['Grado', 'Curso', 'Competencia']).size().reset_index(name='Total')
+df_curso_comp_grado = df_curso_comp_grado.merge(total_curso_comp_grado, on=['Grado', 'Curso', 'Competencia'])
+df_curso_comp_grado['Porcentaje'] = (df_curso_comp_grado['Cantidad'] / df_curso_comp_grado['Total']) * 100
+
+# 3. Agrupar por Grado - Competencia (para comparaciones)
 df_grado_comp = df_estadisticas.groupby(['Grado', 'Competencia', 'Nivel']).size().reset_index(name='Cantidad')
 total_grado_comp = df_estadisticas.groupby(['Grado', 'Competencia']).size().reset_index(name='Total')
 df_grado_comp = df_grado_comp.merge(total_grado_comp, on=['Grado', 'Competencia'])
 df_grado_comp['Porcentaje'] = (df_grado_comp['Cantidad'] / df_grado_comp['Total']) * 100
 
-# 4. Agrupar por Sección - Competencia
-df_seccion_comp = df_estadisticas.groupby(['Seccion', 'Competencia', 'Nivel']).size().reset_index(name='Cantidad')
-total_seccion_comp = df_estadisticas.groupby(['Seccion', 'Competencia']).size().reset_index(name='Total')
-df_seccion_comp = df_seccion_comp.merge(total_seccion_comp, on=['Seccion', 'Competencia'])
+# 4. Agrupar por Sección - Competencia (para comparaciones)
+df_seccion_comp_simple = df_estadisticas.groupby(['Seccion', 'Competencia', 'Nivel']).size().reset_index(name='Cantidad')
+total_seccion_comp_simple = df_estadisticas.groupby(['Seccion', 'Competencia']).size().reset_index(name='Total')
+df_seccion_comp_simple = df_seccion_comp_simple.merge(total_seccion_comp_simple, on=['Seccion', 'Competencia'])
+df_seccion_comp_simple['Porcentaje'] = (df_seccion_comp_simple['Cantidad'] / df_seccion_comp_simple['Total']) * 100
+
+# 4b. Agrupar por Sección - Curso - Competencia (para pestaña Por Sección)
+df_seccion_comp = df_estadisticas.groupby(['Seccion', 'Curso', 'Competencia', 'Nivel']).size().reset_index(name='Cantidad')
+total_seccion_comp = df_estadisticas.groupby(['Seccion', 'Curso', 'Competencia']).size().reset_index(name='Total')
+df_seccion_comp = df_seccion_comp.merge(total_seccion_comp, on=['Seccion', 'Curso', 'Competencia'])
 df_seccion_comp['Porcentaje'] = (df_seccion_comp['Cantidad'] / df_seccion_comp['Total']) * 100
 
 # Métricas generales
@@ -129,126 +141,88 @@ app.layout = html.Div([
     
     # Tabs
     dcc.Tabs([
-        # TAB 1: NIVEL SECUNDARIA
+        # TAB 1: NIVEL SECUNDARIA (solo segundo cuadro)
         dcc.Tab(label='📚 1. Nivel Secundaria', children=[
             html.Div([
-                html.H2('Porcentaje por Nivel en cada Competencia', 
-                       style={'color': '#2c3e50', 'marginTop': 20}),
-                
-                html.Div([
-                    html.Label('Seleccionar Competencia:', style={'fontWeight': 'bold'}),
-                    dcc.Dropdown(
-                        id='competencia-secundaria',
-                        options=[{'label': comp, 'value': comp} 
-                                for comp in sorted(df_secundaria_comp['Competencia'].unique())],
-                        value=sorted(df_secundaria_comp['Competencia'].unique())[0],
-                        style={'marginBottom': 20}
-                    )
-                ]),
-                
-                html.Div(id='grafico-secundaria'),
-                
-                html.Hr(style={'margin': '40px 0'}),
-                
-                html.H2('Porcentaje por Curso y Competencia', 
-                       style={'color': '#2c3e50'}),
-                
+                html.H2('Porcentaje por Curso y Competencia', style={'color': '#2c3e50', 'marginTop': 20}),
                 html.Div([
                     html.Div([
                         html.Label('Curso:', style={'fontWeight': 'bold'}),
-                        dcc.Dropdown(id='curso-select', 
-                                   options=[{'label': c, 'value': c} for c in sorted(df_curso_comp['Curso'].unique())],
-                                   value=sorted(df_curso_comp['Curso'].unique())[0])
+                        dcc.Dropdown(id='curso-select', options=[{'label': c, 'value': c} for c in sorted(df_curso_comp['Curso'].unique())], value=sorted(df_curso_comp['Curso'].unique())[0])
                     ], style={'width': '48%', 'display': 'inline-block'}),
-                    
                     html.Div([
                         html.Label('Competencia:', style={'fontWeight': 'bold'}),
                         dcc.Dropdown(id='competencia-curso-select')
                     ], style={'width': '48%', 'display': 'inline-block', 'marginLeft': '4%'}),
                 ]),
-                
                 html.Div(id='grafico-curso', style={'marginTop': 20}),
             ], style={'padding': 20})
         ]),
         
-        # TAB 2: POR GRADO
-        dcc.Tab(label='🎓 2. Por Grado', children=[
+        # TAB 2: POR CURSO (grado-curso-competencia)
+        dcc.Tab(label='🎓 2. Por Curso', children=[
             html.Div([
-                html.H2('Porcentaje por Grado en cada Competencia', 
-                       style={'color': '#2c3e50', 'marginTop': 20}),
-                
+                html.H2('Porcentaje por Grado, Curso y Competencia', style={'color': '#2c3e50', 'marginTop': 20}),
                 html.Div([
                     html.Div([
                         html.Label('Grado:', style={'fontWeight': 'bold'}),
-                        dcc.Dropdown(id='grado-select',
-                                   options=[{'label': g, 'value': g} for g in sorted(df_grado_comp['Grado'].unique())],
-                                   value=sorted(df_grado_comp['Grado'].unique())[0])
-                    ], style={'width': '48%', 'display': 'inline-block'}),
-                    
+                        dcc.Dropdown(id='filtro-curso-grado', options=[{'label': g, 'value': g} for g in sorted(df_curso_comp_grado['Grado'].unique())], value=sorted(df_curso_comp_grado['Grado'].unique())[0])
+                    ], style={'width': '32%', 'display': 'inline-block'}),
+                    html.Div([
+                        html.Label('Curso:', style={'fontWeight': 'bold'}),
+                        dcc.Dropdown(id='filtro-curso-curso')
+                    ], style={'width': '32%', 'display': 'inline-block', 'marginLeft': '2%'}),
                     html.Div([
                         html.Label('Competencia:', style={'fontWeight': 'bold'}),
-                        dcc.Dropdown(id='competencia-grado-select')
-                    ], style={'width': '48%', 'display': 'inline-block', 'marginLeft': '4%'}),
+                        dcc.Dropdown(id='filtro-curso-competencia')
+                    ], style={'width': '32%', 'display': 'inline-block', 'marginLeft': '2%'}),
                 ]),
-                
-                html.Div(id='grafico-grado', style={'marginTop': 20}),
-                
+                html.Div(id='grafico-curso-grado', style={'marginTop': 20}),
                 html.Hr(style={'margin': '40px 0'}),
-                
                 html.H2('Comparación entre Grados', style={'color': '#2c3e50'}),
-                
                 html.Div([
                     html.Label('Seleccionar Competencia:', style={'fontWeight': 'bold'}),
                     dcc.Dropdown(
                         id='competencia-comparacion-grado',
-                        options=[{'label': comp, 'value': comp} 
-                                for comp in sorted(df_grado_comp['Competencia'].unique())],
+                        options=[{'label': comp, 'value': comp} for comp in sorted(df_grado_comp['Competencia'].unique())],
                         value=sorted(df_grado_comp['Competencia'].unique())[0],
                         style={'marginBottom': 20}
                     )
                 ]),
-                
                 html.Div(id='grafico-comparacion-grados'),
             ], style={'padding': 20})
         ]),
         
-        # TAB 3: POR SECCIÓN
+        # TAB 3: POR SECCIÓN (seccion-curso-competencia)
         dcc.Tab(label='👥 3. Por Sección', children=[
             html.Div([
-                html.H2('Porcentaje por Sección en cada Competencia', 
-                       style={'color': '#2c3e50', 'marginTop': 20}),
-                
+                html.H2('Porcentaje por Sección, Curso y Competencia', style={'color': '#2c3e50', 'marginTop': 20}),
                 html.Div([
                     html.Div([
                         html.Label('Sección:', style={'fontWeight': 'bold'}),
-                        dcc.Dropdown(id='seccion-select',
-                                   options=[{'label': s, 'value': s} for s in sorted(df_seccion_comp['Seccion'].unique())],
-                                   value=sorted(df_seccion_comp['Seccion'].unique())[0])
-                    ], style={'width': '48%', 'display': 'inline-block'}),
-                    
+                        dcc.Dropdown(id='filtro-seccion-seccion', options=[{'label': s, 'value': s} for s in sorted(df_seccion_comp['Seccion'].unique())], value=sorted(df_seccion_comp['Seccion'].unique())[0])
+                    ], style={'width': '32%', 'display': 'inline-block'}),
+                    html.Div([
+                        html.Label('Curso:', style={'fontWeight': 'bold'}),
+                        dcc.Dropdown(id='filtro-seccion-curso')
+                    ], style={'width': '32%', 'display': 'inline-block', 'marginLeft': '2%'}),
                     html.Div([
                         html.Label('Competencia:', style={'fontWeight': 'bold'}),
-                        dcc.Dropdown(id='competencia-seccion-select')
-                    ], style={'width': '48%', 'display': 'inline-block', 'marginLeft': '4%'}),
+                        dcc.Dropdown(id='filtro-seccion-competencia')
+                    ], style={'width': '32%', 'display': 'inline-block', 'marginLeft': '2%'}),
                 ]),
-                
-                html.Div(id='grafico-seccion', style={'marginTop': 20}),
-                
+                html.Div(id='grafico-seccion-filtros', style={'marginTop': 20}),
                 html.Hr(style={'margin': '40px 0'}),
-                
                 html.H2('Comparación entre Secciones', style={'color': '#2c3e50'}),
-                
                 html.Div([
                     html.Label('Seleccionar Competencia:', style={'fontWeight': 'bold'}),
                     dcc.Dropdown(
                         id='competencia-comparacion-seccion',
-                        options=[{'label': comp, 'value': comp} 
-                                for comp in sorted(df_seccion_comp['Competencia'].unique())],
-                        value=sorted(df_seccion_comp['Competencia'].unique())[0],
+                        options=[{'label': comp, 'value': comp} for comp in sorted(df_seccion_comp_simple['Competencia'].unique())],
+                        value=sorted(df_seccion_comp_simple['Competencia'].unique())[0],
                         style={'marginBottom': 20}
                     )
                 ]),
-                
                 html.Div(id='grafico-comparacion-secciones'),
             ], style={'padding': 20})
         ]),
@@ -342,40 +316,97 @@ def update_secundaria(competencia):
     
     return dcc.Graph(figure=fig)
 
-# 2. Actualizar competencias por curso
+
+# 2.1. Actualizar competencias por curso (Nivel Secundaria)
 @app.callback(
-    [Output('competencia-curso-select', 'options'),
-     Output('competencia-curso-select', 'value')],
+    [Output('competencia-curso-select', 'options'), Output('competencia-curso-select', 'value')],
     Input('curso-select', 'value')
 )
 def update_curso_comp_options(curso):
     comps = sorted(df_curso_comp[df_curso_comp['Curso'] == curso]['Competencia'].unique())
     return [{'label': c, 'value': c} for c in comps], comps[0] if comps else None
 
-# 3. Gráfico curso-competencia
+# 2.2. Gráfico curso-competencia (Nivel Secundaria)
 @app.callback(
     Output('grafico-curso', 'children'),
-    [Input('curso-select', 'value'),
-     Input('competencia-curso-select', 'value')]
+    [Input('curso-select', 'value'), Input('competencia-curso-select', 'value')]
 )
 def update_curso(curso, competencia):
     if not competencia:
         return html.Div()
-    
-    df_filt = df_curso_comp[(df_curso_comp['Curso'] == curso) & 
-                            (df_curso_comp['Competencia'] == competencia)]
-    
+    df_filt = df_curso_comp[(df_curso_comp['Curso'] == curso) & (df_curso_comp['Competencia'] == competencia)]
     fig = go.Figure(data=[
         go.Bar(x=df_filt['Nivel'], y=df_filt['Porcentaje'],
-               text=[f"{row['Porcentaje']:.1f}% ({row['Cantidad']})" 
-                     for _, row in df_filt.iterrows()],
-               textposition='auto',
-               marker_color=['#27ae60', '#2ecc71', '#f39c12', '#e74c3c'])
+               text=[f"{row['Porcentaje']:.1f}% ({row['Cantidad']})" for _, row in df_filt.iterrows()],
+               textposition='auto', marker_color=['#27ae60', '#2ecc71', '#f39c12', '#e74c3c'])
     ])
-    
-    fig.update_layout(title=f'{curso} - {competencia}', xaxis_title='Nivel',
-                     yaxis_title='Porcentaje (%)', height=400)
-    
+    fig.update_layout(title=f'{curso} - {competencia}', xaxis_title='Nivel', yaxis_title='Porcentaje (%)', height=400)
+    return dcc.Graph(figure=fig)
+
+# 2.3. Filtros grado-curso-competencia (Por Curso)
+@app.callback(
+    [Output('filtro-curso-curso', 'options'), Output('filtro-curso-curso', 'value')],
+    Input('filtro-curso-grado', 'value')
+)
+def update_curso_options_grado(grado):
+    cursos = sorted(df_curso_comp_grado[df_curso_comp_grado['Grado'] == grado]['Curso'].unique())
+    return [{'label': c, 'value': c} for c in cursos], cursos[0] if cursos else None
+
+@app.callback(
+    [Output('filtro-curso-competencia', 'options'), Output('filtro-curso-competencia', 'value')],
+    [Input('filtro-curso-grado', 'value'), Input('filtro-curso-curso', 'value')]
+)
+def update_competencia_options_grado(grado, curso):
+    comps = sorted(df_curso_comp_grado[(df_curso_comp_grado['Grado'] == grado) & (df_curso_comp_grado['Curso'] == curso)]['Competencia'].unique())
+    return [{'label': c, 'value': c} for c in comps], comps[0] if comps else None
+
+@app.callback(
+    Output('grafico-curso-grado', 'children'),
+    [Input('filtro-curso-grado', 'value'), Input('filtro-curso-curso', 'value'), Input('filtro-curso-competencia', 'value')]
+)
+def update_grafico_curso_grado(grado, curso, competencia):
+    if not competencia:
+        return html.Div()
+    df_filt = df_curso_comp_grado[(df_curso_comp_grado['Grado'] == grado) & (df_curso_comp_grado['Curso'] == curso) & (df_curso_comp_grado['Competencia'] == competencia)]
+    fig = go.Figure(data=[
+        go.Bar(x=df_filt['Nivel'], y=df_filt['Porcentaje'],
+               text=[f"{row['Porcentaje']:.1f}% ({row['Cantidad']})" for _, row in df_filt.iterrows()],
+               textposition='auto', marker_color=['#27ae60', '#2ecc71', '#f39c12', '#e74c3c'])
+    ])
+    fig.update_layout(title=f'{grado} - {curso} - {competencia}', xaxis_title='Nivel', yaxis_title='Porcentaje (%)', height=400)
+    return dcc.Graph(figure=fig)
+
+# 2.4. Filtros seccion-curso-competencia (Por Sección)
+@app.callback(
+    [Output('filtro-seccion-curso', 'options'), Output('filtro-seccion-curso', 'value')],
+    Input('filtro-seccion-seccion', 'value')
+)
+def update_curso_options_seccion(seccion):
+    cursos = sorted(df_seccion_comp[df_seccion_comp['Seccion'] == seccion]['Curso'].unique())
+    return [{'label': c, 'value': c} for c in cursos], cursos[0] if cursos else None
+
+@app.callback(
+    [Output('filtro-seccion-competencia', 'options'), Output('filtro-seccion-competencia', 'value')],
+    [Input('filtro-seccion-seccion', 'value'), Input('filtro-seccion-curso', 'value')]
+)
+def update_competencia_options_seccion(seccion, curso):
+    comps = sorted(df_seccion_comp[(df_seccion_comp['Seccion'] == seccion) & (df_seccion_comp['Curso'] == curso)]['Competencia'].unique())
+    return [{'label': c, 'value': c} for c in comps], comps[0] if comps else None
+
+@app.callback(
+    Output('grafico-seccion-filtros', 'children'),
+    [Input('filtro-seccion-seccion', 'value'), Input('filtro-seccion-curso', 'value'), Input('filtro-seccion-competencia', 'value')]
+)
+def update_grafico_seccion_filtros(seccion, curso, competencia):
+    if not competencia:
+        return html.Div()
+    df_filt = df_seccion_comp[(df_seccion_comp['Seccion'] == seccion) & (df_seccion_comp['Curso'] == curso) & (df_seccion_comp['Competencia'] == competencia)]
+    fig = go.Figure(data=[
+        go.Bar(x=df_filt['Nivel'], y=df_filt['Porcentaje'],
+               text=[f"{row['Porcentaje']:.1f}% ({row['Cantidad']})" for _, row in df_filt.iterrows()],
+               textposition='auto', marker_color=['#27ae60', '#2ecc71', '#f39c12', '#e74c3c'])
+    ])
+    fig.update_layout(title=f'{seccion} - {curso} - {competencia}', xaxis_title='Nivel', yaxis_title='Porcentaje (%)', height=400)
     return dcc.Graph(figure=fig)
 
 # 4. Actualizar competencias por grado
@@ -423,11 +454,12 @@ def update_comp_grados(competencia):
     df_filt = df_grado_comp[df_grado_comp['Competencia'] == competencia]
     
     fig = px.bar(df_filt, x='Grado', y='Porcentaje', color='Nivel',
-                 barmode='group',
-                 color_discrete_map={'AD': '#27ae60', 'A': '#2ecc71', 'B': '#f39c12', 'C': '#e74c3c'},
-                 title=f'Comparación de Grados - {competencia}')
+                 barmode='group', text='Cantidad',
+                 color_discrete_map={'AD': '#27ae60', 'A': '#2ecc71', 'B': '#f39c12', 'C': '#e74c3c'})
     
-    fig.update_layout(height=500, xaxis_title='Grado', yaxis_title='Porcentaje (%)')
+    fig.update_traces(texttemplate='%{y:.1f}%', textposition='outside')
+    fig.update_layout(title=f'Comparación de Grados - {competencia}', 
+                     height=500, xaxis_title='Grado', yaxis_title='Porcentaje (%)')
     
     return dcc.Graph(figure=fig)
 
@@ -473,14 +505,15 @@ def update_seccion(seccion, competencia):
     Input('competencia-comparacion-seccion', 'value')
 )
 def update_comp_secciones(competencia):
-    df_filt = df_seccion_comp[df_seccion_comp['Competencia'] == competencia]
+    df_filt = df_seccion_comp_simple[df_seccion_comp_simple['Competencia'] == competencia]
     
     fig = px.bar(df_filt, x='Seccion', y='Porcentaje', color='Nivel',
-                 barmode='group',
-                 color_discrete_map={'AD': '#27ae60', 'A': '#2ecc71', 'B': '#f39c12', 'C': '#e74c3c'},
-                 title=f'Comparación de Secciones - {competencia}')
+                 barmode='group', text='Cantidad',
+                 color_discrete_map={'AD': '#27ae60', 'A': '#2ecc71', 'B': '#f39c12', 'C': '#e74c3c'})
     
-    fig.update_layout(height=500, xaxis_title='Sección', yaxis_title='Porcentaje (%)')
+    fig.update_traces(texttemplate='%{y:.1f}%', textposition='outside')
+    fig.update_layout(title=f'Comparación de Secciones - {competencia}',
+                     height=500, xaxis_title='Sección', yaxis_title='Porcentaje (%)')
     
     return dcc.Graph(figure=fig)
 

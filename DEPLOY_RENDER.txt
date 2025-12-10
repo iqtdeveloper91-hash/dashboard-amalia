@@ -1,0 +1,146 @@
+# 🌐 CONECTAR GITHUB CON RENDER (Ver en la web)
+
+## ✅ Prerequisito: Archivos ya subidos a GitHub
+
+Verificar que estén en:
+https://github.com/iqtdeveloper91-hash/dashboard-amalia
+
+---
+
+## PASO 1: Ir a Render Dashboard
+
+https://dashboard.render.com
+
+(Iniciar sesión con tu cuenta)
+
+---
+
+## PASO 2: Crear Web Service
+
+1. Click en el botón: **New +** (arriba a la derecha)
+
+2. Seleccionar: **Web Service**
+
+---
+
+## PASO 3: Conectar repositorio
+
+1. Si es la primera vez:
+   - Click: **Connect a repository**
+   - Autorizar a Render acceso a GitHub
+   - Seleccionar: **Only select repositories**
+   - Buscar y marcar: `dashboard-amalia`
+   - Click: **Install**
+
+2. En la lista de repositorios:
+   - Buscar: `dashboard-amalia`
+   - Click: **Connect** (al lado derecho)
+
+---
+
+## PASO 4: Configurar el servicio
+
+Llenar el formulario:
+
+**Name:**
+```
+dashboard-amalia
+```
+
+**Region:**
+```
+Oregon (US West)
+```
+
+**Branch:**
+```
+main
+```
+
+**Runtime:**
+```
+Python 3
+```
+
+**Build Command:**
+```
+pip install -r requirements.txt
+```
+
+**Start Command:**
+```
+gunicorn dashboard_web:server
+```
+
+**Instance Type:**
+```
+Free
+```
+(Seleccionar el plan FREE - $0/month)
+
+---
+
+## PASO 5: Crear el servicio
+
+Scroll hasta abajo y click en:
+
+**Create Web Service**
+
+---
+
+## PASO 6: Esperar el deployment
+
+Verás la pantalla de logs en tiempo real:
+
+```
+==> Cloning from https://github.com/iqtdeveloper91-hash/dashboard-amalia...
+==> Checking out commit abc123...
+==> Running build command 'pip install -r requirements.txt'...
+    Installing pandas...
+    Installing dash...
+    Installing plotly...
+    ...
+==> Build successful! 
+==> Starting server...
+==> Your service is live at https://dashboard-amalia-xxxx.onrender.com
+```
+
+⏱️ Primera vez: **3-5 minutos**
+
+---
+
+## ✅ LISTO!
+
+Tu dashboard estará disponible en:
+
+**https://dashboard-amalia-xxxx.onrender.com**
+
+(Render te muestra el link exacto en la parte superior)
+
+---
+
+## 📱 Compartir
+
+Copia el link y compártelo con quien quieras:
+- Funciona en cualquier dispositivo
+- No necesitan instalar nada
+- Acceso desde cualquier lugar
+
+---
+
+## ⚠️ Nota sobre el plan FREE
+
+- Después de 15 min sin uso se suspende
+- Al volver a abrir tarda ~30 seg en "despertar"
+- Totalmente normal y esperado
+
+---
+
+## 🔄 Actualizar después
+
+Si cambias algo en el código:
+
+1. Subir nuevos archivos a GitHub
+2. Render detecta el cambio automáticamente
+3. Hace re-deploy en 2-3 minutos
+4. El link sigue siendo el mismo

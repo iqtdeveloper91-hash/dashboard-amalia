@@ -1,0 +1,108 @@
+# 📤 SUBIR ARCHIVOS A GITHUB (PASO A PASO)
+
+## ✅ Repositorio creado: dashboard-amalia
+
+---
+
+## PASO 1: Ir a subir archivos
+
+En tu navegador, ir a:
+https://github.com/iqtdeveloper91-hash/dashboard-amalia
+
+Click en: **uploading an existing file**
+
+(Está en el texto azul que dice "Get started by creating a new file or uploading an existing file")
+
+---
+
+## PASO 2: Subir los 6 archivos principales
+
+1. Abrir la carpeta en Windows:
+   `C:\Users\erwin\Downloads\dashboard\SUBIR_A_GITHUB`
+
+2. Seleccionar estos 6 archivos (NO la carpeta assets):
+   - .gitignore
+   - dashboard_web.py
+   - DASHBOARD_II_BIMESTRE.xlsx
+   - Procfile
+   - requirements.txt
+   - runtime.txt
+
+3. ARRASTRAR los 6 archivos a la ventana del navegador
+   (Donde dice "Drag files here to add them to your repository")
+
+4. Esperar que suban (barra verde de progreso)
+
+5. En "Commit changes":
+   - Mensaje: `Agregar dashboard y configuración`
+
+6. Click: **Commit changes** (botón verde)
+
+---
+
+## PASO 3: Subir el logo
+
+1. En la página del repositorio, click: **Add file** → **Upload files**
+
+2. Click en: **choose your files**
+
+3. Navegar a: `C:\Users\erwin\Downloads\dashboard\SUBIR_A_GITHUB\assets`
+
+4. Seleccionar: `logo.png`
+
+5. Click: **Open**
+
+6. IMPORTANTE: Antes de hacer commit, cambiar el nombre del archivo:
+   - GitHub lo subirá como "logo.png"
+   - Necesitas crear la carpeta assets
+   
+   **Mejor opción:** Hacer esto después del commit de los otros archivos:
+   
+   a. Click: **Add file** → **Create new file**
+   
+   b. En "Name your file": escribir `assets/logo.png`
+   
+   c. Esto crea automáticamente la carpeta assets
+   
+   d. Click en: **Choose your files**
+   
+   e. Seleccionar el logo.png
+   
+   f. Commit message: `Agregar logo del colegio`
+   
+   g. Click: **Commit changes**
+
+---
+
+## PASO 4: Verificar archivos
+
+Deberías ver en el repositorio:
+
+```
+dashboard-amalia/
+├── assets/
+│   └── logo.png
+├── .gitignore
+├── dashboard_web.py
+├── DASHBOARD_II_BIMESTRE.xlsx
+├── LEEME_PRIMERO.txt
+├── Procfile
+├── requirements.txt
+└── runtime.txt
+```
+
+---
+
+## ✅ LISTO PARA RENDER
+
+Una vez subidos todos los archivos, continuar con Render.com
+
+---
+
+## 🔗 Links rápidos:
+
+Subir archivos:
+https://github.com/iqtdeveloper91-hash/dashboard-amalia/upload
+
+Ver repositorio:
+https://github.com/iqtdeveloper91-hash/dashboard-amalia
